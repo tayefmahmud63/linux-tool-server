@@ -12,17 +12,16 @@ def get_db(location):
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS data (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    manufacturer TEXT,
-                    product TEXT,
-                    version TEXT,
-                    serial TEXT,
-                    pmn TEXT,
-                    ramtotal TEXT,
-                    hdl TEXT,
-                    hdserial TEXT,
                     location TEXT,
-                    notes TEXT,
-                    atr TEXT
+                    atr TEXT,
+                    note TEXT,
+                    ram_total_gb TEXT,
+                    processor TEXT,
+                    hard_disk_size_gb TEXT,
+                    laptop_brand TEXT,
+                    model_number TEXT,
+                    serial_number TEXT,
+                    hard_disk_serial_number TEXT
                 )
             ''')
             conn.commit()
@@ -96,23 +95,22 @@ def index(location):
     <body>
         <header>
             <h1>Hardware Report :  {location}</h1>
-            
         </header>
         <table>
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Manufacturer</th>
-                    <th>Product</th>
-                    <th>Version</th>
-                    <th>Serial</th>
+                    <th>Brand</th>
+                    <th>Model Number</th>
+                    <th>Serial Number</th>
                     <th>Processor</th>
-                    <th>RAM Total</th>
+                    <th>RAM (GB)</th>
                     <th>HDD Size</th>
-                    <th>HD Serial</th>
+                    <th>HDD Number</th>
                     <th>Location</th>
-                    <th>Notes</th>
                     <th>ATR</th>
+                    <th>Note</th>
+        
                 </tr>
             </thead>
             <tbody>
@@ -121,17 +119,16 @@ def index(location):
         html += f"""
             <tr>
                 <td>{row[0]}</td>
-                <td>{row[1]}</td>
-                <td>{row[2]}</td>
-                <td>{row[3]}</td>
-                <td>{row[4]}</td>
-                <td>{row[5]}</td>
-                <td>{row[6]}</td>
                 <td>{row[7]}</td>
                 <td>{row[8]}</td>
                 <td>{row[9]}</td>
+                <td>{row[5]}</td>
+                <td>{row[4]}</td>
+                <td>{row[6]}</td>
                 <td>{row[10]}</td>
-                <td>{row[11]}</td>
+                <td>{row[1]}</td>
+                <td>{row[2]}</td>
+                <td>{row[3]}</td>
             </tr>
         """
     html += """
@@ -153,7 +150,7 @@ def add_data():
     data = request.json
     location = data['location']
     
-    fields = ('manufacturer', 'product', 'version', 'serial', 'pmn', 'ramtotal', 'hdl', 'hdserial', 'location', 'notes', 'atr')
+    fields = ('location', 'atr', 'note', 'ram_total_gb', 'processor', 'hard_disk_size_gb', 'laptop_brand', 'model_number', 'serial_number', 'hard_disk_serial_number')
     
     if not all(field in data for field in fields):
         return jsonify({'error': 'Missing fields'}), 400
@@ -161,9 +158,9 @@ def add_data():
     conn = get_db(location)
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO data (manufacturer, product, version, serial, pmn, ramtotal, hdl, hdserial, location, notes, atr)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (data['manufacturer'], data['product'], data['version'], data['serial'], data['pmn'], data['ramtotal'], data['hdl'], data['hdserial'], data['location'], data['notes'], data['atr']))
+        INSERT INTO data (location, atr, note, ram_total_gb, processor, hard_disk_size_gb, laptop_brand, model_number, serial_number, hard_disk_serial_number)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (data['location'], data['atr'], data['note'], data['ram_total_gb'], data['processor'], data['hard_disk_size_gb'], data['laptop_brand'], data['model_number'], data['serial_number'], data['hard_disk_serial_number']))
     conn.commit()
     data_id = cursor.lastrowid
     conn.close()
@@ -171,4 +168,4 @@ def add_data():
     return jsonify({'id': data_id, 'data': data}), 201
 
 if __name__ == '__main__':
-    app.run(debug=True,host="0.0.0.0")
+    app.run(debug=True, host="0.0.0.0")

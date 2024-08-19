@@ -81,15 +81,7 @@ def index(location):
             table tr:hover {{
                 background-color: #ddd;
             }}
-            footer {{
-                background-color: #4CAF50;
-                color: white;
-                text-align: center;
-                padding: 10px 0;
-                position: fixed;
-                width: 100%;
-                bottom: 0;
-            }}
+           
         </style>
     </head>
     <body>
@@ -134,9 +126,7 @@ def index(location):
     html += """
             </tbody>
         </table>
-        <footer>
-            <p>&copy; 2024 My Flask Application</p>
-        </footer>
+   
     </body>
     </html>
     """

@@ -101,7 +101,8 @@ if [ $? -eq 0 ]; then
     echo "Wiping the detected drive..."
 
     # Wipe the detected drive securely
-    sudo shred -v -n 1 "$i"
+    #sudo shred -v -n 1 "$i"
+    sudo dd if=/dev/zero of="$i" bs=100M status=progress
     echo "Hard disk wiped successfully."
 else
     echo "Failed to post data to API."

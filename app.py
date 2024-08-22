@@ -1,11 +1,12 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template, redirect, url_for, send_file
 import sqlite3
 import os
+import pandas as pd
 
 app = Flask(__name__)
 
 def get_db(location):
-    db_name = f'{location}.db'
+    db_name = f'databases/{location}.db'
     if not os.path.exists(db_name):
         with sqlite3.connect(db_name) as conn:
             cursor = conn.cursor()
@@ -27,6 +28,19 @@ def get_db(location):
             conn.commit()
     return sqlite3.connect(db_name)
 
+@app.route('/', methods=['GET'])
+def home():
+    databases = [f.replace('.db', '') for f in os.listdir('databases') if f.endswith('.db')]
+    entries_count = {}
+    for db in databases:
+        conn = get_db(db)
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM data")
+        count = cursor.fetchone()[0]
+        entries_count[db] = count
+        conn.close()
+    return render_template('home.html', databases=databases, entries_count=entries_count)
+
 @app.route('/<location>', methods=['GET'])
 def index(location):
     conn = get_db(location)
@@ -34,103 +48,27 @@ def index(location):
     cursor.execute("SELECT * FROM data")
     rows = cursor.fetchall()
     conn.close()
-    
-    # Generate HTML with enhanced styling
-    html = f"""
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Hardware Report : {location}</title>
-        <style>
-            body {{
-                font-family: Arial, sans-serif;
-                margin: 0;
-                padding: 0;
-                background-color: #f4f4f4;
-            }}
-            header {{
-                background-color: #4CAF50;
-                color: white;
-                padding: 10px 0;
-                text-align: center;
-            }}
-            h1 {{
-                margin: 0;
-            }}
-            table {{
-                width: 80%;
-                margin: 20px auto;
-                border-collapse: collapse;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                background-color: white;
-            }}
-            table th, table td {{
-                border: 1px solid #ddd;
-                padding: 8px;
-                text-align: center;
-            }}
-            table th {{
-                background-color: #4CAF50;
-                color: white;
-            }}
-            table tr:nth-child(even) {{
-                background-color: #f2f2f2;
-            }}
-            table tr:hover {{
-                background-color: #ddd;
-            }}
-           
-        </style>
-    </head>
-    <body>
-        <header>
-            <h1>Hardware Report :  {location}</h1>
-        </header>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Brand</th>
-                    <th>Model Number</th>
-                    <th>Serial Number</th>
-                    <th>Processor</th>
-                    <th>RAM (GB)</th>
-                    <th>HDD Size</th>
-                    <th>HDD Number</th>
-                    <th>Location</th>
-                    <th>ATR</th>
-                    <th>Note</th>
-        
-                </tr>
-            </thead>
-            <tbody>
-    """
-    for row in rows:
-        html += f"""
-            <tr>
-                <td>{row[0]}</td>
-                <td>{row[7]}</td>
-                <td>{row[8]}</td>
-                <td>{row[9]}</td>
-                <td>{row[5]}</td>
-                <td>{row[4]}</td>
-                <td>{row[6]}</td>
-                <td>{row[10]}</td>
-                <td>{row[1]}</td>
-                <td>{row[2]}</td>
-                <td>{row[3]}</td>
-            </tr>
-        """
-    html += """
-            </tbody>
-        </table>
-   
-    </body>
-    </html>
-    """
-    return html
+    return render_template('index.html', rows=rows, location=location)
+
+@app.route('/delete/<location>', methods=['POST'])
+def delete_database(location):
+    db_name = f'databases/{location}.db'
+    if os.path.exists(db_name):
+        os.remove(db_name)
+    return redirect(url_for('home'))
+
+@app.route('/export/<location>', methods=['GET'])
+def export_data(location):
+    db_name = f'databases/{location}.db'
+    conn = sqlite3.connect(db_name)
+    query = "SELECT * FROM data"
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+
+    excel_file = f'{location}.xlsx'
+    df.to_excel(excel_file, index=False)
+
+    return send_file(excel_file, as_attachment=True)
 
 @app.route('/api/data', methods=['POST'])
 def add_data():
@@ -158,4 +96,6 @@ def add_data():
     return jsonify({'id': data_id, 'data': data}), 201
 
 if __name__ == '__main__':
+    if not os.path.exists('databases'):
+        os.makedirs('databases')
     app.run(debug=True, host="0.0.0.0")

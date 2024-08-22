@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <title>Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 50px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background-color: #fff;
+            margin: 10px 0;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        span {
+            font-weight: bold;
+            color: #333;
+        }
+        a, button {
+            text-decoration: none;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 5px;
+        }
+        a.view {
+            background-color: #4CAF50;
+        }
+        button.delete {
+            background-color: #f44336;
+        }
+        button.export {
+            background-color: #008CBA;
+        }
+        .buttons {
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Database List</h1>
+    <ul>
+        {% for db in databases %}
+        <li>
+            <span>{{ db }} ({{ entries_count[db] }} entries)</span>
+            <div class="buttons">
+                <a href="/{{ db }}" class="view">View</a>
+               
+                <a href="/export/{{ db }}">
+                    <button class="export">Export</button>
+                </a>
+                <form action="/delete/{{ db }}" method="POST" style="display:inline;">
+                    <button class="delete">Delete</button>
+                </form>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

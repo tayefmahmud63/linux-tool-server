@@ -34,7 +34,7 @@ processor=$(grep -m 1 'model name' /proc/cpuinfo | cut -d ':' -f2 | xargs)
 
 # Detect HDD/SSD/NVMe and exclude USB/removable drives
 storage_detected=false
-for i in /dev/sd[a-z] /dev/nvme[0-9]n[0-9]; do
+for i in /dev/sd[a-z]; do
     if [ ${#i} -le 8 ]; then
         is_removable=$(lsblk -dno RM "$i")
         if [ "$is_removable" -eq 0 ]; then
@@ -51,10 +51,31 @@ for i in /dev/sd[a-z] /dev/nvme[0-9]n[0-9]; do
     fi
 done
 
+
 if ! $storage_detected; then
-    echo "No HDD/SSD/NVMe detected."
+    echo "No HDD/SSD/ detected."
     exit 1
 fi
+
+#Process NVME Drives
+for i in /dev/nvme[0-9]n[0-9]
+do
+   if [ `expr length $i` -eq 12 ]; then
+      nohdd=1
+      echo -n "Drive detected: "
+      echo -n "$i "
+      curdrive=`nvme list | grep -i /dev/nvme0n1 | sed -n "s/^\/dev\/nv.*\?\/\s\([0-9]*\.[0-9]*\)\s*\(\w*\).*/\1 \2/p"`
+      curdriveserial=`nvme list | grep -i /dev/nvme0n1 | awk '{print $2}'`
+      echo "$curdrive [$curdriveserial]"
+      drivelist="$drivelist $curdrive\n"
+      driveserials="$driveserials $curdriveserial\n"
+   fi
+done
+if [ $nohdd -eq 0 ]; then
+   echo "No hard drives found!"
+   drivelist=`echo -n "None"`
+fi
+
 
 # Get laptop brand and model
 brand_name=$(sudo dmidecode -s system-manufacturer)

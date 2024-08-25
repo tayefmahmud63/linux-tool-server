@@ -54,7 +54,7 @@ done
 
 if ! $storage_detected; then
     echo "No HDD/SSD/ detected."
-    exit 1
+    
 fi
 
 #Process NVME Drives
@@ -65,7 +65,7 @@ do
       echo -n "Drive detected: "
       echo -n "$i "
       curdrive=`nvme list | grep -i /dev/nvme0n1 | sed -n "s/^\/dev\/nv.*\?\/\s\([0-9]*\.[0-9]*\)\s*\(\w*\).*/\1 \2/p"`
-      curdriveserial=`nvme list | grep -i /dev/nvme0n1 | awk '{print $2}'`
+      curdriveserial=`nvme list | grep -i /dev/nvme0n1 | awk '{print $3}'`
       echo "$curdrive [$curdriveserial]"
       drivelist="$drivelist $curdrive\n"
       driveserials="$driveserials $curdriveserial\n"

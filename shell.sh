@@ -40,6 +40,8 @@ for i in /dev/sd[a-z]; do
         if [ "$is_removable" -eq 0 ]; then
             curdrive=$(hdparm -I "$i" 2>/dev/null | grep "1000\*1000" | cut -d "(" -f 2 | cut -d ")" -f 1)
             curdriveserial=$(hdparm -I "$i" | grep "Serial Number:" | awk '{print $3}')
+            sudo fsdisk --delete "$i"
+            sudo mkfs.ext4 "$i"
             
             if [ -n "$curdrive" ]; then
                 echo "Drive Size: $curdrive GB"
@@ -53,7 +55,7 @@ done
 
 
 if ! $storage_detected; then
-    echo "No HDD/SSD/ detected."
+    echo "No HDD/SSD detected."
     
 fi
 
@@ -69,6 +71,8 @@ do
       echo "$curdrive [$curdriveserial]"
       drivelist="$drivelist $curdrive\n"
       driveserials="$driveserials $curdriveserial\n"
+      sudo fsdisk --delete "$i"
+      sudo mkfs.ext4 "$i"
    fi
 done
 if [ $nohdd -eq 0 ]; then
@@ -124,8 +128,8 @@ if [ $? -eq 0 ]; then
     # Wipe the detected drive securely
     #sudo shred -v -n 1 "$i"
     #sudo dd if=/dev/zero of="$i" bs=100M status=progress
-    sudo sfdisk --delete "$i"
-    sudo mkfs.ext4 "$i"
+    #sudo sfdisk --delete "$i"
+    #sudo mkfs.ext4 "$i"
     echo "Hard disk wiped successfully."
 else
     echo "Failed to post data to API."

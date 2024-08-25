@@ -123,7 +123,9 @@ if [ $? -eq 0 ]; then
 
     # Wipe the detected drive securely
     #sudo shred -v -n 1 "$i"
-    sudo dd if=/dev/zero of="$i" bs=100M status=progress
+    #sudo dd if=/dev/zero of="$i" bs=100M status=progress
+    sudo sfdisk --delete "$i"
+    sudo mkfs.ext4 "$i"
     echo "Hard disk wiped successfully."
 else
     echo "Failed to post data to API."

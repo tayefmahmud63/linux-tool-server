@@ -76,7 +76,7 @@ do
    fi
 done
 if [ $nohdd -eq 0 ]; then
-   echo "No hard drives found!"
+   echo "No nvme drives found!"
    drivelist=`echo -n "None"`
 fi
 
@@ -103,7 +103,7 @@ json_data=$(cat <<EOF
     "location": "$location",
     "atr": "$atr",
     "note": "$note",
-    "ram_total_gb": "${rounded_ram}G",
+    "ram_total_gb": "${rounded_ram}GB",
     "processor": "$processor",
     "hard_disk_size_gb": "$curdrive",
     "laptop_brand": "$brand_name",
@@ -115,7 +115,7 @@ EOF
 )
 
 # Post the JSON data to the API
-api_url="http://192.168.1.102:5000/api/data"
+api_url="http://192.168.20.143/api/data"
 curl -X POST "$api_url" -H "Content-Type: application/json" -d "$json_data"
 
 # Check if data was posted successfully

@@ -57,6 +57,15 @@ def delete_database(location):
         os.remove(db_name)
     return redirect(url_for('home'))
 
+@app.route('/delete/<location>/<int:row_id>', methods=['POST'])
+def delete_row(location, row_id):
+    conn = get_db(location)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM data WHERE id=?", (row_id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('index', location=location))
+
 @app.route('/export/<location>', methods=['GET'])
 def export_data(location):
     db_name = f'databases/{location}.db'

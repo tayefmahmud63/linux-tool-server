@@ -3,13 +3,13 @@
 # Blue background
 echo -e -n "\033[44m"
 
-# Grey foreground. 
+# Grey foreground
 echo -e -n "\033[37m"
 
-# Disable screen blanking.
+# Disable screen blanking
 echo -e -n "\033[9;0]" 
 
-# Clear the screen.
+# Clear the screen
 echo -e -n "\033[2J"
 
 clear
@@ -21,6 +21,21 @@ echo "**************************************************************************
 read -p "Enter Location: " location
 read -p "Enter ATR: " atr
 read -p "Enter Note: " note
+
+# Collect input for Asset Type
+echo "Select Asset Type:"
+echo "1. Laptop"
+echo "2. Desktop"
+read -p "Enter choice [1 or 2]: " asset_choice
+
+if [ "$asset_choice" -eq 1 ]; then
+    asset_type="Laptop"
+elif [ "$asset_choice" -eq 2 ]; then
+    asset_type="Desktop"
+else
+    echo "Invalid option. Defaulting to Laptop."
+    asset_type="Laptop"
+fi
 
 echo "************************************************************************************************************************"
 echo "Collection Hardware Report . . . . . . . . . . . . . . ."
@@ -53,15 +68,12 @@ for i in /dev/sd[a-z]; do
     fi
 done
 
-
 if ! $storage_detected; then
     echo "No HDD/SSD detected."
-    
 fi
 
 #Process NVME Drives
-for i in /dev/nvme[0-9]n[0-9]
-do
+for i in /dev/nvme[0-9]n[0-9]; do
    if [ `expr length $i` -eq 12 ]; then
       nohdd=1
       echo -n "Drive detected: "
@@ -75,11 +87,11 @@ do
       sudo mkfs.ext4 "$i"
    fi
 done
+
 if [ $nohdd -eq 0 ]; then
    echo "No nvme drives found!"
    drivelist=`echo -n "None"`
 fi
-
 
 # Get laptop brand and model
 brand_name=$(sudo dmidecode -s system-manufacturer)
@@ -95,6 +107,7 @@ echo " HDD Serial: $curdriveserial"
 echo " Location: $location"
 echo " ATR: $atr"
 echo " Note: $note"
+echo " Asset Type: $asset_type"
 echo "************************************************************************************************************************"
 
 # Prepare JSON data
@@ -109,7 +122,8 @@ json_data=$(cat <<EOF
     "laptop_brand": "$brand_name",
     "model_number": "$model_number",
     "serial_number": "$serial_number",
-    "hard_disk_serial_number": "$curdriveserial"
+    "hard_disk_serial_number": "$curdriveserial",
+    "asset_type": "$asset_type"
 }
 EOF
 )

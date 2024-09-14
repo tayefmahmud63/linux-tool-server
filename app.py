@@ -22,11 +22,13 @@ def get_db(location):
                     laptop_brand TEXT,
                     model_number TEXT,
                     serial_number TEXT,
-                    hard_disk_serial_number TEXT
+                    hard_disk_serial_number TEXT,
+                    asset_type TEXT  -- New field
                 )
             ''')
             conn.commit()
     return sqlite3.connect(db_name)
+
 
 @app.route('/', methods=['GET'])
 def home():
@@ -87,7 +89,7 @@ def add_data():
     data = request.json
     location = data['location']
     
-    fields = ('location', 'atr', 'note', 'ram_total_gb', 'processor', 'hard_disk_size_gb', 'laptop_brand', 'model_number', 'serial_number', 'hard_disk_serial_number')
+    fields = ('location', 'atr', 'note', 'ram_total_gb', 'processor', 'hard_disk_size_gb', 'laptop_brand', 'model_number', 'serial_number', 'hard_disk_serial_number', 'asset_type')
     
     if not all(field in data for field in fields):
         return jsonify({'error': 'Missing fields'}), 400
@@ -95,14 +97,15 @@ def add_data():
     conn = get_db(location)
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO data (location, atr, note, ram_total_gb, processor, hard_disk_size_gb, laptop_brand, model_number, serial_number, hard_disk_serial_number)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (data['location'], data['atr'], data['note'], data['ram_total_gb'], data['processor'], data['hard_disk_size_gb'], data['laptop_brand'], data['model_number'], data['serial_number'], data['hard_disk_serial_number']))
+        INSERT INTO data (location, atr, note, ram_total_gb, processor, hard_disk_size_gb, laptop_brand, model_number, serial_number, hard_disk_serial_number, asset_type)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (data['location'], data['atr'], data['note'], data['ram_total_gb'], data['processor'], data['hard_disk_size_gb'], data['laptop_brand'], data['model_number'], data['serial_number'], data['hard_disk_serial_number'], data['asset_type']))
     conn.commit()
     data_id = cursor.lastrowid
     conn.close()
     
     return jsonify({'id': data_id, 'data': data}), 201
+
 
 if __name__ == '__main__':
     if not os.path.exists('databases'):

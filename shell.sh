@@ -18,27 +18,42 @@ echo " Hardware Report and Data Wiping Tool"
 echo "************************************************************************************************************************"
 
 # Collect input from user
-read -p "Enter Location: " location
+#read -p "Enter Location: " location
 read -p "Enter ATR: " atr
 read -p "Enter Note: " note
 
 # Collect input for Asset Type
-echo "Select Asset Type:"
-echo "1. Laptop"
-echo "2. Desktop"
-read -p "Enter choice [1 or 2]: " asset_choice
+#echo "Select Asset Type:"
+#echo "1. Laptop"
+#echo "2. Desktop"
+#read -p "Enter choice [1 or 2]: " asset_choice
 
-if [ "$asset_choice" -eq 1 ]; then
-    asset_type="Laptop"
-elif [ "$asset_choice" -eq 2 ]; then
-    asset_type="Desktop"
-else
-    echo "Invalid option. Defaulting to Laptop."
-    asset_type="Laptop"
-fi
+#if [ "$asset_choice" -eq 1 ]; then
+#    asset_type="Laptop"
+#elif [ "$asset_choice" -eq 2 ]; then
+#    asset_type="Desktop"
+#else
+#    echo "Invalid option. Defaulting to Laptop."
+#    asset_type="Laptop"
+#fi
 
 echo "************************************************************************************************************************"
 echo "Collection Hardware Report . . . . . . . . . . . . . . ."
+
+
+
+# Check if the system has a battery and store the result in asset_type
+if [ -d "/sys/class/power_supply/BAT0" ]; then
+    asset_type="Laptop"
+else
+    asset_type="Desktop"
+fi
+
+# Echo the result
+#echo "This is a $asset_type."
+
+
+
 
 # Get total RAM in GB
 ram_total=$(grep MemTotal /proc/meminfo | awk '{print $2 / 1024 / 1024}')

@@ -62,10 +62,15 @@ rounded_ram=$(echo "$ram_total" | awk '{print ($1 == int($1)) ? $1 : int($1)+1}'
 # Get processor model
 processor=$(grep -m 1 'model name' /proc/cpuinfo | cut -d ':' -f2 | xargs)
 
-# Detect HDD/SSD and exclude USB/removable drives
+# Function to sanitize HDD serial numbers and model details
+sanitize_data() {
+    echo "$1" | tr -d '[:punct:]' | tr -s ' ' | cut -c 1-50
+}
 
+# Detect HDD/SSD and exclude USB/removable drives
 drivelist=""
 driveserials=""
+
 for i in /dev/sd[a-z]; do
     if [ ${#i} -le 8 ]; then
         is_removable=$(lsblk -dno RM "$i")
@@ -74,12 +79,16 @@ for i in /dev/sd[a-z]; do
             curdriveserial=$(hdparm -I "$i" | grep "Serial Number:" | awk '{print $3}')
             
             if [ -n "$curdrive" ] && [ -n "$curdriveserial" ]; then
-                echo "Detected Drive: $i"
-                echo "Drive Size: $curdrive GB"
-                echo "Drive Serial: $curdriveserial"
+                # Sanitize drive details
+                sanitized_drive=$(sanitize_data "$curdrive")
+                sanitized_serial=$(sanitize_data "$curdriveserial")
                 
-                drivelist="$drivelist $curdrive"
-                driveserials="$driveserials $curdriveserial"
+                echo "Detected Drive: $i"
+                echo "Drive Size: $sanitized_drive GB"
+                echo "Drive Serial: $sanitized_serial"
+                
+                drivelist="$drivelist $sanitized_drive"
+                driveserials="$driveserials $sanitized_serial"
                 
                 # Wipe and format the drive
                 echo "Wiping and formatting $i..."
@@ -94,18 +103,22 @@ if [ -z "$drivelist" ]; then
     echo "No HDD/SSD detected."
 fi
 
-# Process NVME Drives
+# Process NVMe Drives
 for i in /dev/nvme[0-9]n[0-9]; do
     curdrive=$(nvme list | grep -i "$i" | sed -n "s/^\/dev\/nv.*\?\/\s\([0-9]*\.[0-9]*\)\s*\(\w*\).*/\1 \2/p")
     curdriveserial=$(nvme id-ctrl "$i" | grep "sn" | awk '{print $3}')
     
     if [ -n "$curdrive" ] && [ -n "$curdriveserial" ]; then
-        echo "Detected NVMe Drive: $i"
-        echo "Drive Size: $curdrive"
-        echo "Drive Serial: $curdriveserial"
+        # Sanitize drive details
+        sanitized_drive=$(sanitize_data "$curdrive")
+        sanitized_serial=$(sanitize_data "$curdriveserial")
         
-        drivelist="$drivelist $curdrive"
-        driveserials="$driveserials $curdriveserial"
+        echo "Detected NVMe Drive: $i"
+        echo "Drive Size: $sanitized_drive"
+        echo "Drive Serial: $sanitized_serial"
+        
+        drivelist="$drivelist $sanitized_drive"
+        driveserials="$driveserials $sanitized_serial"
         
         # Wipe and format the NVMe drive
         echo "Wiping and formatting $i..."
@@ -117,6 +130,7 @@ done
 if [ -z "$curdrive" ]; then
     echo "No NVMe drives detected."
 fi
+
 
 # Get laptop brand and model
 brand_name=$(sudo dmidecode -s system-manufacturer)

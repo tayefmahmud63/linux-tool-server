@@ -12,32 +12,65 @@ echo -e -n "\033[9;0]"
 # Clear the screen
 echo -e -n "\033[2J"
 
+# Function to check server status by pinging a hardcoded IP address
+print_server_status() {
+    local server_ip="192.168.1.102"  # Replace with the desired IP address
+
+    # Ping the server (4 packets, wait 1 second per packet)
+    if ping -c 4 -W 1 "$server_ip" > /dev/null 2>&1; then
+        # If the server is online, print green background
+        echo -e "\e[1;37m\e[42m SERVER ONLINE ($server_ip) \e[0m"
+    else
+        # If the server is offline, print red background
+        echo -e "\e[1;37m\e[41m SERVER OFFLINE ($server_ip) \e[0m"
+    fi
+}
+# Function to show confirmation popup with simulated center alignment
+success_confirmation() {
+    whiptail --title "Confirmation" \
+    --msgbox "\n SUCCESS" 10 40 --ok-button "OK"
+}
+
+# Function to show confirmation popup with simulated center alignment
+error_confirmation() {
+    whiptail --title "Confirmation" \
+    --msgbox "\n CANT SEND DATA TO SERVER" 10 40 --ok-button "OK"
+}
+
+
 clear
-echo " Hardware Report and Data Wiping Tool"
+# ASCII Art for "Hardware Report & Wipe"
+ascii_art=$(cat <<'EOF'
+  _    _               _                          _____                       _             __          ___       _             
+ | |  | |             | |                        |  __ \                     | |     ___    \ \        / (_)     (_)            
+ | |__| | __ _ _ __ __| |_      ____ _ _ __ ___  | |__) |___ _ __   ___  _ __| |_   ( _ )    \ \  /\  / / _ _ __  _ _ __   __ _ 
+ |  __  |/ _` | '__/ _` \ \ /\ / / _` | '__/ _ \ |  _  // _ \ '_ \ / _ \| '__| __|  / _ \/\   \ \/  \/ / | | '_ \| | '_ \ / _` |
+ | |  | | (_| | | | (_| |\ V  V / (_| | | |  __/ | | \ \  __/ |_) | (_) | |  | |_  | (_>  <    \  /\  /  | | |_) | | | | | (_| |
+ |_|  |_|\__,_|_|  \__,_| \_/\_/ \__,_|_|  \___| |_|  \_\___| .__/ \___/|_|   \__|  \___/\/     \/  \/   |_| .__/|_|_| |_|\__, |
+                                                            | |                                            | |             __/ |
+                                                            |_|                                            |_|            |___/ 
+                                                                      
+                                           Hardware Report & Data Wipe Tool By Null Labz
+                                                          www.nullabz.com
+                                        ====================================================
+                                                            
+EOF
+)
 
-echo "************************************************************************************************************************"
 
-# Collect input from user
-#read -p "Enter Location: " location
-read -p "Enter ATR: " atr
-read -p "Enter Note: " note
+# Display ASCII art
+echo "$ascii_art"
+echo "Checking Server Active Status"
+sleep 1
+echo "."
+sleep 1
+echo "."
+sleep 1
+echo "."
 
-# Collect input for Asset Type
-#echo "Select Asset Type:"
-#echo "1. Laptop"
-#echo "2. Desktop"
-#read -p "Enter choice [1 or 2]: " asset_choice
 
-#if [ "$asset_choice" -eq 1 ]; then
-#    asset_type="Laptop"
-#elif [ "$asset_choice" -eq 2 ]; then
-#    asset_type="Desktop"
-#else
-#    echo "Invalid option. Defaulting to Laptop."
-#    asset_type="Laptop"
-#fi
 
-echo "************************************************************************************************************************"
+print_server_status
 echo "Collection Hardware Report . . . . . . . . . . . . . . ."
 
 
@@ -49,9 +82,6 @@ else
     asset_type="Desktop"
 fi
 
-# Echo the result
-#echo "This is a $asset_type."
-
 
 
 
@@ -61,14 +91,6 @@ rounded_ram=$(echo "$ram_total" | awk '{print ($1 == int($1)) ? $1 : int($1)+1}'
 
 # Get processor model
 processor=$(grep -m 1 'model name' /proc/cpuinfo | cut -d ':' -f2 | xargs)
-
-# Sanitieze the hdd serial
-sanitize_data() {
-    local input="$1"
-    # Extract the first word before any space
-    echo "$input" | awk '{print $1}'
-}
-
 
 # Detect HDD/SSD and exclude USB/removable drives
 
@@ -86,14 +108,13 @@ for i in /dev/sd[a-z]; do
                 echo "Drive Size: $curdrive GB"
                 echo "Drive Serial: $curdriveserial"
                 
-                
                 drivelist="$drivelist $curdrive"
                 driveserials="$driveserials $curdriveserial"
                 
                 # Wipe and format the drive
                 echo "Wiping and formatting $i..."
-                sudo fsdisk --delete "$i"
-                sudo mkfs.ext4 "$i"
+                #sudo fsdisk --delete "$i"
+                #sudo mkfs.ext4 "$i"
             fi
         fi
     fi
@@ -118,8 +139,8 @@ for i in /dev/nvme[0-9]n[0-9]; do
         
         # Wipe and format the NVMe drive
         echo "Wiping and formatting $i..."
-        sudo fsdisk --delete "$i"
-        sudo mkfs.ext4 "$i"
+        #sudo fsdisk --delete "$i"
+        #sudo mkfs.ext4 "$i"
     fi
 done
 
@@ -127,20 +148,28 @@ if [ -z "$curdrive" ]; then
     echo "No NVMe drives detected."
 fi
 
+drive_serials=$(echo "$driveserials" | head -n 1)
+
+
 # Get laptop brand and model
 brand_name=$(sudo dmidecode -s system-manufacturer)
 model_number=$(sudo dmidecode -s system-product-name)
 serial_number=$(sudo dmidecode -s system-serial-number)
 
-sanitized_serial=$(sanitize_data "$driveserials")
-echo "Sanitized Serial: $sanitized_serial"
+
+
+# Collect input from user
+read -p "Enter Location: " location
+read -p "Enter ATR: " atr
+read -p "Enter Note: " note
+
 
 echo " Brand: $brand_name"
 echo " Model Number: $model_number"
 echo " Processor: $processor"
 echo " Ram Size Total (GB): ${rounded_ram}"
 echo " HDD/NVMe Sizes: $drivelist"
-echo " HDD/NVMe Serials: $sanitized_serial"
+echo " HDD/NVMe Serials: $drive_serials"
 echo " Location: $location"
 echo " ATR: $atr"
 echo " Note: $note"
@@ -159,22 +188,19 @@ json_data=$(cat <<EOF
     "laptop_brand": "$brand_name",
     "model_number": "$model_number",
     "serial_number": "$serial_number",
-    "hard_disk_serial_number": "$sanitized_serial",
+    "hard_disk_serial_number": "$drive_serials",
     "asset_type": "$asset_type"
 }
 EOF
 )
 
 # Post the JSON data to the API
-api_url="http://192.168.20.143/api/data"
+api_url="192.168.1.102:5000/api/data"
 curl -X POST "$api_url" -H "Content-Type: application/json" -d "$json_data"
 
 # Check if data was posted successfully
 if [ $? -eq 0 ]; then
-    echo "************************************************************************************************************************"
-    echo "Data posted to API successfully."
-    echo "************************************************************************************************************************"
-    echo "Wiping the detected drives completed."
+    success_confirmation
 else
-    echo "Failed to post data to API."
+    error_confirmation
 fi

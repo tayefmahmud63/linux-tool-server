@@ -60,6 +60,35 @@ EOF
 
 # Display ASCII art
 echo "$ascii_art"
+
+
+# Define WiFi SSID and Password as variables
+WIFI_SSID="ciscosb"
+WIFI_PASSWORD="farman0786"
+
+# Use whiptail to prompt for WiFi or LAN selection
+connection_type=$(whiptail --title "Connection Type" --menu "Choose your connection type" 15 60 2 \
+"1" "LAN" \
+"2" "WiFi" 3>&1 1>&2 2>&3)
+
+# Check if the user selected LAN
+if [[ "$connection_type" == "1" ]]; then
+    # Do nothing if LAN is selected
+    whiptail --msgbox "You selected LAN" 8 45
+else
+    # Connect to WiFi using nmcli
+    nmcli dev wifi connect "$WIFI_SSID" password "$WIFI_PASSWORD"
+    sleep 5
+    
+    if [ $? -eq 0 ]; then
+        whiptail --msgbox "Connected to WiFi: $WIFI_SSID" 8 45
+    else
+        whiptail --msgbox "Failed to connect to WiFi: $WIFI_SSID" 8 45
+    fi
+fi
+
+
+
 echo "Checking Server Active Status"
 sleep 1
 echo "."
@@ -113,8 +142,8 @@ for i in /dev/sd[a-z]; do
                 
                 # Wipe and format the drive
                 echo "Wiping and formatting $i..."
-                #sudo fsdisk --delete "$i"
-                #sudo mkfs.ext4 "$i"
+                sudo fsdisk --delete "$i"
+                sudo mkfs.ext4 "$i"
             fi
         fi
     fi
@@ -139,8 +168,8 @@ for i in /dev/nvme[0-9]n[0-9]; do
         
         # Wipe and format the NVMe drive
         echo "Wiping and formatting $i..."
-        #sudo fsdisk --delete "$i"
-        #sudo mkfs.ext4 "$i"
+        sudo fsdisk --delete "$i"
+        sudo mkfs.ext4 "$i"
     fi
 done
 

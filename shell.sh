@@ -14,7 +14,7 @@ echo -e -n "\033[2J"
 
 # Function to check server status by pinging a hardcoded IP address
 print_server_status() {
-    local server_ip="192.168.1.102"  # Replace with the desired IP address
+    local server_ip="192.168.20.143"  # Replace with the desired IP address
 
     # Ping the server (4 packets, wait 1 second per packet)
     if ping -c 4 -W 1 "$server_ip" > /dev/null 2>&1; then
@@ -142,8 +142,8 @@ for i in /dev/sd[a-z]; do
                 
                 # Wipe and format the drive
                 echo "Wiping and formatting $i..."
-                sudo fsdisk --delete "$i"
-                sudo mkfs.ext4 "$i"
+                #sudo fsdisk --delete "$i"
+                #sudo mkfs.ext4 "$i"
             fi
         fi
     fi
@@ -168,8 +168,8 @@ for i in /dev/nvme[0-9]n[0-9]; do
         
         # Wipe and format the NVMe drive
         echo "Wiping and formatting $i..."
-        sudo fsdisk --delete "$i"
-        sudo mkfs.ext4 "$i"
+        #sudo fsdisk --delete "$i"
+        #sudo mkfs.ext4 "$i"
     fi
 done
 
@@ -187,10 +187,6 @@ serial_number=$(sudo dmidecode -s system-serial-number)
 
 
 
-# Collect input from user
-read -p "Enter Location: " location
-read -p "Enter ATR: " atr
-read -p "Enter Note: " note
 
 
 echo " Brand: $brand_name"
@@ -199,11 +195,15 @@ echo " Processor: $processor"
 echo " Ram Size Total (GB): ${rounded_ram}"
 echo " HDD/NVMe Sizes: $drivelist"
 echo " HDD/NVMe Serials: $drive_serials"
-echo " Location: $location"
-echo " ATR: $atr"
-echo " Note: $note"
 echo " Asset Type: $asset_type"
 echo "************************************************************************************************************************"
+
+
+# Collect input from user
+read -p "Enter Location: " location
+read -p "Enter ATR: " atr
+read -p "Enter Note: " note
+
 
 # Prepare JSON data
 json_data=$(cat <<EOF
@@ -224,7 +224,7 @@ EOF
 )
 
 # Post the JSON data to the API
-api_url="192.168.1.102:5000/api/data"
+api_url="192.168.20.143/api/data"
 curl -X POST "$api_url" -H "Content-Type: application/json" -d "$json_data"
 
 # Check if data was posted successfully

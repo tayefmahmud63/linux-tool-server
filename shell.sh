@@ -142,8 +142,8 @@ for i in /dev/sd[a-z]; do
                 
                 # Wipe and format the drive
                 echo "Wiping and formatting $i..."
-                #sudo fsdisk --delete "$i"
-                #sudo mkfs.ext4 "$i"
+                sudo fsdisk --delete "$i"
+                sudo mkfs.ext4 "$i"
             fi
         fi
     fi
@@ -168,8 +168,8 @@ for i in /dev/nvme[0-9]n[0-9]; do
         
         # Wipe and format the NVMe drive
         echo "Wiping and formatting $i..."
-        #sudo fsdisk --delete "$i"
-        #sudo mkfs.ext4 "$i"
+        sudo fsdisk --delete "$i"
+        sudo mkfs.ext4 "$i"
     fi
 done
 

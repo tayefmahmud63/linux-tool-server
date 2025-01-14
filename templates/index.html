@@ -43,7 +43,22 @@
         table tr:hover {
             background-color: #ddd;
         }
-        .delete{
+        .back-button a {
+            text-decoration: none;
+            color: white;
+            background-color: #008CBA;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            
+        }
+
+        .back-button {
+            margin: 20px;
+            display: block;
+            text-align: center;
+        }
+        .delete {
             text-decoration: none;
             color: white;
             padding: 8px 15px;
@@ -55,18 +70,27 @@
             background-color: #f44336;
         }
     </style>
+    <script>
+        function confirmDelete(rowId) {
+            return confirm(`Are you sure you want to delete the row with ID: ${rowId}?`);
+        }
+    </script>
 </head>
 <body>
     <header>
         <h1>Hardware Report :  {{ location }}</h1>
     </header>
+        <!-- Back Button -->
+        <div class="back-button">
+            <a href="/">Back to Home</a>
+        </div>
     <table>
         <thead>
             <tr>
                 <th>ID</th>
                 <th>Serial Number</th>
                 <th>Model Number</th>
-                <th>Brand</th>   
+                <th>Brand</th>
                 <th>Processor</th>
                 <th>RAM (GB)</th>
                 <th>HDD Size</th>
@@ -94,7 +118,7 @@
                 <td>{{ row[3] }}</td>
                 <td>{{ row[11] }}</td> <!-- Asset type column data -->
                 <td>
-                    <form action="/delete/{{ location }}/{{ row[0] }}" method="POST">
+                    <form action="/delete/{{ location }}/{{ row[0] }}" method="POST" onsubmit="return confirmDelete('{{ row[0] }}')">
                         <button class="delete" type="submit">Delete</button>
                     </form>
                 </td>
@@ -104,4 +128,3 @@
     </table>
 </body>
 </html>
-

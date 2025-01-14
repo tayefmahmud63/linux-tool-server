@@ -56,6 +56,11 @@
             align-items: center;
         }
     </style>
+    <script>
+        function confirmDelete(database) {
+            return confirm(`Are you sure you want to delete the database: ${database}?`);
+        }
+    </script>
 </head>
 <body>
     <h1>Database List</h1>
@@ -65,11 +70,10 @@
             <span>{{ db }} ({{ entries_count[db] }} entries)</span>
             <div class="buttons">
                 <a href="/{{ db }}" class="view">View</a>
-               
                 <a href="/export/{{ db }}">
                     <button class="export">Export</button>
                 </a>
-                <form action="/delete/{{ db }}" method="POST" style="display:inline;">
+                <form action="/delete/{{ db }}" method="POST" style="display:inline;" onsubmit="return confirmDelete('{{ db }}')">
                     <button class="delete">Delete</button>
                 </form>
             </div>

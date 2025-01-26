@@ -63,7 +63,7 @@ echo "$ascii_art"
 
 
 # Define WiFi SSID and Password as variables
-WIFI_SSID="ciscosb"
+WIFI_SSID="2nds IT"
 WIFI_PASSWORD="farman0786"
 
 # Use whiptail to prompt for WiFi or LAN selection
@@ -77,7 +77,8 @@ if [[ "$connection_type" == "1" ]]; then
     whiptail --msgbox "You selected LAN" 8 45
 else
     # Connect to WiFi using nmcli
-    nmcli dev wifi connect "$WIFI_SSID" password "$WIFI_PASSWORD"
+    sudo systemctl start NetworkManager
+    sudo nmcli dev wifi connect "$WIFI_SSID" password "$WIFI_PASSWORD"
     sleep 5
     
     if [ $? -eq 0 ]; then
@@ -189,20 +190,22 @@ serial_number=$(sudo dmidecode -s system-serial-number)
 
 
 
-echo " Brand: $brand_name"
-echo " Model Number: $model_number"
-echo " Processor: $processor"
-echo " Ram Size Total (GB): ${rounded_ram}"
-echo " HDD/NVMe Sizes: $drivelist"
-echo " HDD/NVMe Serials: $drive_serials"
-echo " Asset Type: $asset_type"
-echo "************************************************************************************************************************"
+# Display existing data using whiptail
+whiptail --title "System Information" --msgbox "Brand: $brand_name\nModel Number: $model_number\nProcessor: $processor\nRAM Size Total (GB): ${rounded_ram}\nHDD/NVMe Sizes: $drivelist\nHDD/NVMe Serials: $drive_serials\nAsset Type: $asset_type" 15 60
 
+# Get user input for location, ATR, and note using whiptail
+location=$(whiptail --inputbox "Enter Location:" 10 60 3>&1 1>&2 2>&3)
+if [[ -z "$location" ]]; then
+  whiptail --title "Error" --msgbox "Location is required. Exiting." 8 45
+  exit 1
+fi
 
-# Collect input from user
-read -p "Enter Location: " location
-read -p "Enter ATR: " atr
-read -p "Enter Note: " note
+atr=$(whiptail --inputbox "Enter ATR (optional):" 10 60 3>&1 1>&2 2>&3)
+note=$(whiptail --inputbox "Enter Note (optional):" 10 60 3>&1 1>&2 2>&3)
+
+# Display final information
+whiptail --title "Final Input" --msgbox "Brand: $brand_name\nModel Number: $model_number\nProcessor: $processor\nRAM Size Total (GB): ${rounded_ram}\nHDD/NVMe Sizes: $drivelist\nHDD/NVMe Serials: $drive_serials\nAsset Type: $asset_type\nLocation: $location\nATR: ${atr:-N/A}\nNote: ${note:-N/A}" 20 70
+
 
 
 # Prepare JSON data

@@ -7,7 +7,7 @@ echo -e -n "\033[44m"
 echo -e -n "\033[37m"
 
 # Disable screen blanking
-echo -e -n "\033[9;0]" 
+echo -e -n "\033[9;0]"
 
 # Clear the screen
 echo -e -n "\033[2J"
@@ -41,19 +41,19 @@ error_confirmation() {
 clear
 # ASCII Art for "Hardware Report & Wipe"
 ascii_art=$(cat <<'EOF'
-  _    _               _                          _____                       _             __          ___       _             
- | |  | |             | |                        |  __ \                     | |     ___    \ \        / (_)     (_)            
- | |__| | __ _ _ __ __| |_      ____ _ _ __ ___  | |__) |___ _ __   ___  _ __| |_   ( _ )    \ \  /\  / / _ _ __  _ _ __   __ _ 
+  _    _               _                          _____                       _             __          ___       _
+ | |  | |             | |                        |  __ \                     | |     ___    \ \        / (_)     (_)
+ | |__| | __ _ _ __ __| |_      ____ _ _ __ ___  | |__) |___ _ __   ___  _ __| |_   ( _ )    \ \  /\  / / _ _ __  _ _ __   __ _
  |  __  |/ _` | '__/ _` \ \ /\ / / _` | '__/ _ \ |  _  // _ \ '_ \ / _ \| '__| __|  / _ \/\   \ \/  \/ / | | '_ \| | '_ \ / _` |
  | |  | | (_| | | | (_| |\ V  V / (_| | | |  __/ | | \ \  __/ |_) | (_) | |  | |_  | (_>  <    \  /\  /  | | |_) | | | | | (_| |
  |_|  |_|\__,_|_|  \__,_| \_/\_/ \__,_|_|  \___| |_|  \_\___| .__/ \___/|_|   \__|  \___/\/     \/  \/   |_| .__/|_|_| |_|\__, |
                                                             | |                                            | |             __/ |
-                                                            |_|                                            |_|            |___/ 
-                                                                      
+                                                            |_|                                            |_|            |___/
+
                                            Hardware Report & Data Wipe Tool By Null Labz
                                                           www.nullabz.com
                                         ====================================================
-                                                            
+
 EOF
 )
 
@@ -80,7 +80,7 @@ else
     sudo systemctl start NetworkManager
     sudo nmcli dev wifi connect "$WIFI_SSID" password "$WIFI_PASSWORD"
     sleep 5
-    
+
     if [ $? -eq 0 ]; then
         whiptail --msgbox "Connected to WiFi: $WIFI_SSID" 8 45
     else
@@ -132,15 +132,15 @@ for i in /dev/sd[a-z]; do
         if [ "$is_removable" -eq 0 ]; then
             curdrive=$(hdparm -I "$i" 2>/dev/null | grep "1000\*1000" | cut -d "(" -f 2 | cut -d ")" -f 1)
             curdriveserial=$(hdparm -I "$i" | grep "Serial Number:" | awk '{print $3}')
-            
+
             if [ -n "$curdrive" ] && [ -n "$curdriveserial" ]; then
                 echo "Detected Drive: $i"
                 echo "Drive Size: $curdrive GB"
                 echo "Drive Serial: $curdriveserial"
-                
+
                 drivelist="$drivelist $curdrive"
                 driveserials="$driveserials $curdriveserial"
-                
+
                 # Wipe and format the drive
                 echo "Wiping and formatting $i..."
                 sudo fsdisk --delete "$i"
@@ -158,15 +158,15 @@ fi
 for i in /dev/nvme[0-9]n[0-9]; do
     curdrive=$(nvme list | grep -i "$i" | sed -n "s/^\/dev\/nv.*\?\/\s\([0-9]*\.[0-9]*\)\s*\(\w*\).*/\1 \2/p")
     curdriveserial=$(nvme id-ctrl "$i" | grep "sn" | awk '{print $3}')
-    
+
     if [ -n "$curdrive" ] && [ -n "$curdriveserial" ]; then
         echo "Detected NVMe Drive: $i"
         echo "Drive Size: $curdrive"
         echo "Drive Serial: $curdriveserial"
-        
+
         drivelist="$drivelist $curdrive"
         driveserials="$driveserials $curdriveserial"
-        
+
         # Wipe and format the NVMe drive
         echo "Wiping and formatting $i..."
         sudo fsdisk --delete "$i"
